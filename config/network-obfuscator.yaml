@@ -1,0 +1,56 @@
+# SilentShield Network Obfuscator Configuration
+# 7-Layer obfuscation settings
+
+noise_padding:
+  enabled: true
+  min_padding_bytes: 16
+  max_padding_bytes: 1460
+  padding_algorithm: "crypto/rand"
+
+time_randomization:
+  enabled: true
+  min_delay_ms: 1
+  max_delay_ms: 500
+  jitter_percent: 25
+
+path_deception:
+  enabled: true
+  fake_relay_nodes:
+    - "relay-us-east.silentshield.io"
+    - "relay-eu-west.silentshield.io"
+    - "relay-ap-south.silentshield.io"
+    - "cdn-edge-01.akamai.net"
+    - "cloudfront.amazonaws.com"
+  max_hops: 3
+
+mac_ttl_randomization:
+  enabled: true
+  ttl_min: 64
+  ttl_max: 128
+  mac_oui_random: true
+
+fragment_reassembly:
+  enabled: true
+  fragment_size: 512
+  shuffle_fragments: true
+
+protocol_hopping:
+  enabled: true
+  protocols:
+    - "HTTPS/TLS1.3"
+    - "HTTP/2"
+    - "HTTP/3 (QUIC)"
+    - "WebSocket over TLS"
+    - "gRPC"
+    - "SSH Tunnel"
+    - "WireGuard"
+  hop_interval_seconds:
+    min: 30
+    max: 150
+
+dns_over_https:
+  enabled: true
+  providers:
+    - "https://cloudflare-dns.com/dns-query"
+    - "https://dns.google/dns-query"
+    - "https://dns.quad9.net/dns-query"

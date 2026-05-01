@@ -1,0 +1,26 @@
+{
+  "name": "silentshield",
+  "version": "1.0.0",
+  "description": "SilentShield - Zero-footprint Protection Software",
+  "main": "src/js/server.js",
+  "bin": "src/js/server.js",
+  "scripts": {
+    "start": "node src/js/server.js",
+    "build": "pkg . --targets node18-win-x64 --output dist/SilentShield.exe",
+    "build:all": "pkg . --targets node18-win-x64,node18-macos-x64,node18-linux-x64 --output dist/silentshield",
+    "test": "node src/js/protection.js"
+  },
+  "pkg": {
+    "scripts": [
+      "src/js/*.js"
+    ],
+    "assets": [
+      "src/ui/index.html"
+    ],
+    "outputPath": "dist"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "license": "Proprietary"
+}

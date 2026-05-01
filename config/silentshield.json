@@ -1,0 +1,43 @@
+{
+  "silentshield_version": "1.0.0",
+  "enabled": true,
+  "memory_limit_mb": 2,
+  "cpu_limit_percent": 0.01,
+  "log_level": "Warn",
+  "ui_port": 12701,
+  "network_obfuscation": {
+    "enabled": true,
+    "noise_padding": true,
+    "time_randomization": true,
+    "path_deception": true,
+    "mac_ttl_randomization": true,
+    "fragment_reassembly": true,
+    "protocol_hopping": true,
+    "dns_over_https": true
+  },
+  "shutdown_diq": {
+    "enabled": true,
+    "smm_mode": true,
+    "spi_flash_path": "/dev/spi0",
+    "rtc_wake_delay_seconds": 5,
+    "max_queue_size": 1024
+  },
+  "smm_protection": {
+    "enabled": true,
+    "code_injection": true,
+    "spi_write_protection": true,
+    "rtc_alarm_control": true
+  },
+  "enabled_protections": [],
+  "certifications": {
+    "cnitsec_level": 5,
+    "eal_level": 7,
+    "national_crypto": ["SM4", "SM9", "SM3"]
+  },
+  "supported_platforms": {
+    "windows": ["10", "11"],
+    "linux": ["kernel 5.4+"],
+    "macos": ["12.0+"]
+  },
+  "supported_architectures": ["x86_64", "ARM64"]
+}

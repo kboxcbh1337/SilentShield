@@ -1,0 +1,21 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "SilentShieldApp",
+  "outputfilename": "SilentShieldApp",
+  "frontend:dir": "frontend",
+  "frontend:install": "",
+  "frontend:build": "",
+  "frontend:dev:watcher": "",
+  "frontend:dev:serverUrl": "",
+  "author": {
+    "name": "SilentShield Team",
+    "email": ""
+  },
+  "Info": {
+    "companyName": "SilentShield",
+    "productName": "SilentShield-Windows",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright(c) 2025",
+    "comments": "Zero-Footprint Protection Engine"
+  }
+}
